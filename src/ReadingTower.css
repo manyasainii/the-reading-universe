@@ -1,0 +1,492 @@
+
+/* =========================================
+   THE READING TOWER
+========================================= */
+
+.reading-tower {
+  position: relative;
+  width: 100%;
+  margin: 28px 0 30px;
+  padding: 30px 32px 26px;
+  overflow: hidden;
+  border: 1px solid rgba(190, 157, 104, 0.2);
+  border-radius: 5px;
+  background:
+    radial-gradient(
+      ellipse at 12% 100%,
+      rgba(113, 75, 52, 0.15),
+      transparent 48%
+    ),
+    linear-gradient(135deg, #1d1b19 0%, #171615 55%, #211b19 100%);
+  box-shadow:
+    0 15px 40px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.reading-tower::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 32px;
+  right: 32px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(190, 157, 104, 0.55),
+    transparent
+  );
+}
+
+.tower-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(190, 157, 104, 0.14);
+}
+
+.tower-heading-copy {
+  min-width: 0;
+}
+
+.tower-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: #b99a6b;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.tower-eyebrow svg {
+  color: #c5a675;
+}
+
+.tower-heading h2 {
+  margin: 0;
+  color: #eee5d7;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(25px, 3vw, 34px);
+  font-weight: 500;
+  letter-spacing: -0.7px;
+}
+
+.tower-heading h2 em {
+  color: #c2a276;
+  font-weight: 500;
+}
+
+.tower-heading p {
+  margin: 8px 0 0;
+  color: #91877b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.tower-goal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.tower-goal-label {
+  color: #9d8d78;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+}
+
+.tower-goal-value {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #c6a675;
+  cursor: pointer;
+}
+
+.tower-goal-value strong {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 30px;
+  font-weight: 500;
+}
+
+.tower-goal-value svg {
+  color: #8e806e;
+  transition: color 0.2s ease;
+}
+
+.tower-goal-value:hover svg {
+  color: #d2b486;
+}
+
+.tower-goal-edit {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tower-goal-edit input {
+  width: 65px;
+  height: 34px;
+  padding: 5px 7px;
+  border: 1px solid rgba(190, 157, 104, 0.45);
+  border-radius: 3px;
+  outline: none;
+  background: #28231f;
+  color: #f0e5d5;
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.tower-goal-edit input:focus {
+  border-color: #c2a276;
+}
+
+.tower-goal-edit button {
+  display: grid;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  padding: 0;
+  border: 1px solid rgba(190, 157, 104, 0.25);
+  border-radius: 3px;
+  background: rgba(190, 157, 104, 0.08);
+  color: #c9ad80;
+  cursor: pointer;
+}
+
+.tower-goal-edit button:hover {
+  background: rgba(190, 157, 104, 0.18);
+}
+
+.tower-goal-error {
+  max-width: 180px;
+  color: #d69b8f;
+  font-size: 10px;
+  text-align: right;
+}
+
+/* Tower layout */
+
+.tower-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(190px, 0.7fr);
+  align-items: center;
+  gap: 34px;
+  padding-top: 25px;
+}
+
+.tower-visual {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 250px;
+  padding: 14px 12px 0;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(190, 157, 104, 0.2);
+  background:
+    radial-gradient(
+      ellipse at 50% 100%,
+      rgba(173, 128, 75, 0.13),
+      transparent 65%
+    );
+}
+
+.tower-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  max-height: 390px;
+  padding: 10px 0 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(190, 157, 104, 0.35) transparent;
+}
+
+.tower-stack::-webkit-scrollbar {
+  width: 5px;
+}
+
+.tower-stack::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: rgba(190, 157, 104, 0.35);
+}
+
+.tower-book {
+  position: relative;
+  display: flex;
+  flex: 0 0 25px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  max-width: 92%;
+  min-width: 145px;
+  margin-top: -1px;
+  padding: 0 12px 0 17px;
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.42);
+  border-radius: 2px 3px 2px 2px;
+  box-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.4),
+    inset 3px 0 3px rgba(255, 255, 255, 0.06);
+  color: rgba(255, 242, 220, 0.91);
+  transition:
+    filter 0.2s ease,
+    transform 0.2s ease;
+}
+
+.tower-book:hover {
+  z-index: 2;
+  filter: brightness(1.22);
+}
+
+.tower-book::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 9px;
+  width: 1px;
+  background: rgba(0, 0, 0, 0.28);
+  box-shadow: 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.tower-book-title {
+  min-width: 0;
+  overflow: hidden;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tower-book-author {
+  flex-shrink: 0;
+  max-width: 34%;
+  overflow: hidden;
+  color: rgba(255, 242, 220, 0.65);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tower-book-pages {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  bottom: 2px;
+  width: 3px;
+  border-radius: 1px;
+  background: rgba(239, 222, 191, 0.2);
+}
+
+.tower-base {
+  flex: 0 0 8px;
+  width: 95%;
+  margin-top: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    180deg,
+    #a1845d,
+    #55402e 55%,
+    #30251e
+  );
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.35);
+}
+
+.tower-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  min-height: 230px;
+  color: #827667;
+}
+
+.tower-empty svg {
+  color: #9f825c;
+  opacity: 0.7;
+}
+
+.tower-empty span {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 15px;
+  font-style: italic;
+}
+
+/* Progress panel */
+
+.tower-progress {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px 4px;
+}
+
+.tower-count {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: 23px;
+}
+
+.tower-count strong {
+  color: #e5d4b8;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(48px, 6vw, 66px);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.tower-count span {
+  margin-top: 6px;
+  color: #a89579;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.tower-progress-track {
+  width: 100%;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.tower-progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #927044, #d2b17c);
+  box-shadow: 0 0 12px rgba(194, 162, 118, 0.2);
+  transition: width 0.45s ease;
+}
+
+.tower-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 9px;
+  color: #9d9182;
+  font-size: 10px;
+}
+
+.tower-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 25px;
+  color: #c9b18d;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.tower-message svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #b18c5c;
+}
+
+.tower-date-note {
+  margin-top: 17px;
+  color: #746c62;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* Responsive layout */
+
+@media (max-width: 760px) {
+  .reading-tower {
+    margin: 22px 0;
+    padding: 23px 20px 20px;
+  }
+
+  .tower-heading {
+    gap: 12px;
+  }
+
+  .tower-heading h2 {
+    font-size: 26px;
+  }
+
+  .tower-main {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .tower-visual {
+    min-height: 220px;
+  }
+
+  .tower-stack {
+    max-height: 300px;
+  }
+
+  .tower-progress {
+    padding: 8px 2px 2px;
+  }
+
+  .tower-count {
+    margin-bottom: 14px;
+  }
+
+  .tower-count strong {
+    font-size: 48px;
+  }
+
+  .tower-message {
+    margin-top: 18px;
+  }
+}
+
+@media (max-width: 420px) {
+  .reading-tower {
+    padding: 20px 15px;
+  }
+
+  .tower-heading {
+    flex-direction: column;
+  }
+
+  .tower-goal {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .tower-goal-value strong {
+    font-size: 24px;
+  }
+
+  .tower-book {
+    min-width: 130px;
+    padding-right: 9px;
+  }
+
+  .tower-book-title {
+    font-size: 9px;
+  }
+
+  .tower-book-author {
+    font-size: 7px;
+  }
+}
