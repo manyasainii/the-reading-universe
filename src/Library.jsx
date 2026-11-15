@@ -10,7 +10,6 @@ import {
   Star,
   X,
   Trash2,
-  ChevronDown,
   SlidersHorizontal,
   Library as LibraryIcon,
 } from 'lucide-react';
@@ -28,14 +27,8 @@ const shelves = [
 const emptyForm = {
   title: '',
   author: '',
-  page_count: '',
-  isbn: '',
   reading_status: 'want_to_read',
   rating: '',
-  date_started: '',
-  date_finished: '',
-  cover_url: '',
-  personal_notes: '',
 };
 
 function Library() {
@@ -93,14 +86,12 @@ function Library() {
     const newBook = {
       title: form.title.trim(),
       author: form.author.trim() || null,
-      page_count: form.page_count ? Number(form.page_count) : null,
-      isbn: form.isbn.trim() || null,
       reading_status: form.reading_status,
       rating: form.rating ? Number(form.rating) : null,
-      date_started: form.date_started || null,
-      date_finished: form.date_finished || null,
-      cover_url: form.cover_url.trim() || null,
-      personal_notes: form.personal_notes.trim() || null,
+      date_finished:
+        form.reading_status === 'read'
+          ? new Date().toISOString().slice(0, 10)
+          : null,
     };
 
     const { data, error: insertError } = await supabase
@@ -198,24 +189,30 @@ function Library() {
     return result;
   }, [books, activeShelf, search, sortBy]);
 
-  const counts = useMemo(() => {
-    return {
-      all: books.length,
-      currently_reading: books.filter(
-        (book) => book.reading_status === 'currently_reading'
-      ).length,
-      read: books.filter((book) => book.reading_status === 'read').length,
-      want_to_read: books.filter(
-        (book) => book.reading_status === 'want_to_read'
-      ).length,
-      did_not_finish: books.filter(
-        (book) => book.reading_status === 'did_not_finish'
-      ).length,
-    };
-  }, [books]);
+  const counts = useMemo(() => ({
+    all: books.length,
+    currently_reading: books.filter(
+      (book) => book.reading_status === 'currently_reading'
+    ).length,
+    read: books.filter(
+      (book) => book.reading_status === 'read'
+    ).length,
+    want_to_read: books.filter(
+      (book) => book.reading_status === 'want_to_read'
+    ).length,
+    did_not_finish: books.filter(
+      (book) => book.reading_status === 'did_not_finish'
+    ).length,
+  }), [books]);
 
   const activeShelfLabel =
     shelves.find((shelf) => shelf.id === activeShelf)?.label || 'All books';
+
+  function openAddBook() {
+    setError('');
+    setForm(emptyForm);
+    setModalOpen(true);
+  }
 
   return (
     <div className="library-page">
@@ -231,14 +228,7 @@ function Library() {
           <p>Every story you've read, and every story still waiting.</p>
         </div>
 
-        <button
-          className="library-add-button"
-          onClick={() => {
-            setError('');
-            setForm(emptyForm);
-            setModalOpen(true);
-          }}
-        >
+        <button className="library-add-button" onClick={openAddBook}>
           <Plus size={17} />
           Add a book
         </button>
@@ -329,7 +319,7 @@ function Library() {
                   <option value="author">Author</option>
                   <option value="rating">Highest rated</option>
                 </select>
-                <ChevronDown size={13} />
+                <span className="sort-chevron">⌄</span>
               </label>
             </div>
           </div>
@@ -365,7 +355,7 @@ function Library() {
               {!search && (
                 <button
                   className="library-add-button"
-                  onClick={() => setModalOpen(true)}
+                  onClick={openAddBook}
                 >
                   <Plus size={16} />
                   Add your first book
@@ -378,7 +368,10 @@ function Library() {
                 <article className="book-card" key={book.id}>
                   <div className="book-cover">
                     {book.cover_url ? (
-                      <img src={book.cover_url} alt={`Cover of ${book.title}`} />
+                      <img
+                        src={book.cover_url}
+                        alt={`Cover of ${book.title}`}
+                      />
                     ) : (
                       <div className="book-cover-placeholder">
                         <BookOpen size={27} />
@@ -386,6 +379,7 @@ function Library() {
                         {book.author && <small>{book.author}</small>}
                       </div>
                     )}
+
                     <button
                       className="book-delete"
                       onClick={() => deleteBook(book.id)}
@@ -407,27 +401,24 @@ function Library() {
                           {book.rating}/5
                         </span>
                       )}
-                      {book.page_count && (
-                        <span>{book.page_count} pages</span>
-                      )}
                     </div>
 
                     <select
                       className="book-status-select"
                       value={book.reading_status}
-                      onChange={(event) =>
+                      onChange={(event) => {
+                        const nextStatus = event.target.value;
                         updateBook(book.id, {
-                          reading_status: event.target.value,
-                          ...(event.target.value === 'read' &&
-                          !book.date_finished
+                          reading_status: nextStatus,
+                          ...(nextStatus === 'read' && !book.date_finished
                             ? {
                                 date_finished: new Date()
                                   .toISOString()
                                   .slice(0, 10),
                               }
                             : {}),
-                        })
-                      }
+                        });
+                      }}
                       aria-label={`Reading status for ${book.title}`}
                     >
                       <option value="currently_reading">
@@ -475,7 +466,7 @@ function Library() {
           }}
         >
           <section
-            className="book-modal"
+            className="book-modal book-modal-compact"
             role="dialog"
             aria-modal="true"
             aria-labelledby="add-book-title"
@@ -486,8 +477,11 @@ function Library() {
                   <span />
                   A NEW ARRIVAL
                 </div>
-                <h2 id="add-book-title">Add a <em>book.</em></h2>
+                <h2 id="add-book-title">
+                  Add a <em>book.</em>
+                </h2>
               </div>
+
               <button
                 className="book-modal-close"
                 onClick={() => setModalOpen(false)}
@@ -522,44 +516,6 @@ function Library() {
                 />
               </label>
 
-              <div className="book-form-row">
-                <label className="book-form-field">
-                  Pages
-                  <input
-                    type="number"
-                    min="1"
-                    value={form.page_count}
-                    onChange={(event) =>
-                      updateForm('page_count', event.target.value)
-                    }
-                    placeholder="e.g. 352"
-                  />
-                </label>
-
-                <label className="book-form-field">
-                  ISBN
-                  <input
-                    value={form.isbn}
-                    onChange={(event) =>
-                      updateForm('isbn', event.target.value)
-                    }
-                    placeholder="Optional"
-                  />
-                </label>
-              </div>
-
-              <label className="book-form-field">
-                Cover image URL
-                <input
-                  type="url"
-                  value={form.cover_url}
-                  onChange={(event) =>
-                    updateForm('cover_url', event.target.value)
-                  }
-                  placeholder="https://..."
-                />
-              </label>
-
               <label className="book-form-field">
                 Reading status
                 <select
@@ -574,30 +530,6 @@ function Library() {
                   <option value="did_not_finish">Did not finish</option>
                 </select>
               </label>
-
-              <div className="book-form-row">
-                <label className="book-form-field">
-                  Date started
-                  <input
-                    type="date"
-                    value={form.date_started}
-                    onChange={(event) =>
-                      updateForm('date_started', event.target.value)
-                    }
-                  />
-                </label>
-
-                <label className="book-form-field">
-                  Date finished
-                  <input
-                    type="date"
-                    value={form.date_finished}
-                    onChange={(event) =>
-                      updateForm('date_finished', event.target.value)
-                    }
-                  />
-                </label>
-              </div>
 
               <label className="book-form-field">
                 Your rating
@@ -616,18 +548,6 @@ function Library() {
                 </select>
               </label>
 
-              <label className="book-form-field">
-                Personal notes
-                <textarea
-                  rows="3"
-                  value={form.personal_notes}
-                  onChange={(event) =>
-                    updateForm('personal_notes', event.target.value)
-                  }
-                  placeholder="A thought, a memory, a sentence to remember..."
-                />
-              </label>
-
               {error && (
                 <div className="library-error" role="alert">
                   {error}
@@ -642,13 +562,14 @@ function Library() {
                 >
                   Cancel
                 </button>
+
                 <button
                   type="submit"
                   className="library-add-button"
                   disabled={saving}
                 >
                   <Plus size={16} />
-                  {saving ? 'Adding book...' : 'Add to my library'}
+                  {saving ? 'Adding...' : 'Add to my library'}
                 </button>
               </div>
             </form>
