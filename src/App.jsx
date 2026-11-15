@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   BookOpen, Compass, Library, Sparkles, Quote, Trophy,
   Search, Bell, ChevronDown, Plus, ArrowUpRight,
