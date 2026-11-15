@@ -3,30 +3,24 @@ import React, { useEffect, useState } from 'react';
 import {
   BookOpen,
   Compass,
-  Library,
+  Library as LibraryIcon,
   Sparkles,
   Quote,
   Trophy,
   Search,
   Bell,
-  ChevronDown,
-  Plus,
-  ArrowUpRight,
-  Bookmark,
-  Feather,
   Menu,
   X,
-  Star,
-  Clock3,
-  BookMarked,
-  LogOut
+  Feather,
+  LogOut,
 } from 'lucide-react';
 
 import Auth from './Auth.jsx';
+import Library from './Library.jsx';
 import { supabase } from './lib/supabase';
 
 const navItems = [
-  { label: 'Your library', icon: Library },
+  { label: 'Your library', icon: LibraryIcon },
   { label: 'Reading journal', icon: Feather },
   { label: 'The observatory', icon: Compass },
   { label: 'Quote vault', icon: Quote },
@@ -190,11 +184,11 @@ function App() {
           </div>
 
           <div className="top-actions">
-            <button className="search-trigger">
+            <div className="search-trigger">
               <Search size={16} />
               <span>Search your universe</span>
               <kbd>⌘ K</kbd>
-            </button>
+            </div>
 
             <button
               className="icon-button notification-button"
@@ -210,165 +204,53 @@ function App() {
         </header>
 
         <div className="page-wrap">
-          <section className="welcome-row">
-            <div>
-              <div className="eyebrow">
-                <span className="eyebrow-line" />
-                YOUR PRIVATE LIBRARY
-              </div>
-
-              <h1>
-                A universe of <em>stories.</em>
-              </h1>
-
-              <p className="welcome-subtitle">
-                A home for the books that stay with you.
-              </p>
-            </div>
-
-            <button className="primary-button">
-              <Plus size={17} /> Add a book
-            </button>
-          </section>
-
-          <section className="hero-card">
-            <div className="hero-texture" />
-
-            <div className="hero-content">
-              <div className="hero-kicker">
-                <Sparkles size={13} /> YOUR STORY STARTS HERE
-              </div>
-
-              <h2>
-                Somewhere, a book
-                <br />
-                is waiting to <em>find you.</em>
-              </h2>
-
-              <p>
-                Collect your reads, keep the passages that move you,
-                and watch your literary universe take shape.
-              </p>
-
-              <button className="text-link">
-                Explore your library <ArrowUpRight size={15} />
-              </button>
-            </div>
-
-            <div className="orbit orbit-one" />
-            <div className="orbit orbit-two" />
-            <div className="orbit-core">
-              <BookOpen size={34} />
-            </div>
-
-            <span className="hero-star star-one">✳</span>
-            <span className="hero-star star-two">✧</span>
-            <span className="hero-star star-three">·</span>
-
-            <div className="hero-foot">
-              VOL. I <span>·</span> THE BEGINNING
-            </div>
-          </section>
-
-          <section className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-icon">
-                <BookMarked size={17} />
-              </div>
-              <div className="stat-label">BOOKS IN YOUR ORBIT</div>
-              <div className="stat-value">
-                — <small>books</small>
-              </div>
-              <div className="stat-foot">Your collection begins here</div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-icon">
-                <Clock3 size={17} />
-              </div>
-              <div className="stat-label">CURRENTLY READING</div>
-              <div className="stat-value">
-                — <small>in progress</small>
-              </div>
-              <div className="stat-foot">Stories still unfolding</div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-icon">
-                <Star size={17} />
-              </div>
-              <div className="stat-label">FIVE-STAR READS</div>
-              <div className="stat-value">
-                — <small>favourites</small>
-              </div>
-              <div className="stat-foot">The ones that linger</div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-icon">
-                <Quote size={17} />
-              </div>
-              <div className="stat-label">WORDS TO REMEMBER</div>
-              <div className="stat-value">
-                — <small>saved quotes</small>
-              </div>
-              <div className="stat-foot">Passages worth keeping</div>
-            </div>
-          </section>
-
-          <section className="library-section">
-            <div className="section-heading">
-              <div>
-                <div className="eyebrow">
-                  A FEW OF YOUR FAVOURITE THINGS
+          {activeNav === 'Your library' ? (
+            <Library />
+          ) : (
+            <section className="library-page">
+              <div className="library-intro">
+                <div>
+                  <div className="library-eyebrow">
+                    <span />
+                    YOUR READING UNIVERSE
+                  </div>
+                  <h1>
+                    {activeNav === 'Reading journal' && (
+                      <>The reading <em>journal.</em></>
+                    )}
+                    {activeNav === 'The observatory' && (
+                      <>The <em>observatory.</em></>
+                    )}
+                    {activeNav === 'Quote vault' && (
+                      <>The quote <em>vault.</em></>
+                    )}
+                    {activeNav === 'Hall of fame' && (
+                      <>The hall of <em>fame.</em></>
+                    )}
+                  </h1>
+                  <p>This part of your universe is still taking shape.</p>
                 </div>
-
-                <h3>
-                  {activeNav === 'Your library'
-                    ? 'The shelves are waiting'
-                    : activeNav}
-                </h3>
               </div>
 
-              <button className="subtle-link">
-                View collection <ArrowUpRight size={14} />
-              </button>
-            </div>
-
-            <div className="empty-library">
-              <div className="empty-icon">
-                <Library size={23} />
-              </div>
-
-              <div>
-                <strong>Your library is a blank page.</strong>
+              <div className="library-empty">
+                <div className="library-empty-icon">
+                  <Sparkles size={27} />
+                </div>
+                <h3>Something wonderful is being written.</h3>
                 <p>
-                  Import your Goodreads history or add your first book to
-                  begin.
+                  We'll bring this space to life as we build your
+                  reading universe, one feature at a time.
                 </p>
+                <button
+                  className="library-add-button"
+                  onClick={() => setActiveNav('Your library')}
+                >
+                  <LibraryIcon size={16} />
+                  Return to your library
+                </button>
               </div>
-
-              <button className="outline-button">
-                <Plus size={15} /> Start your collection
-              </button>
-            </div>
-          </section>
-
-          <section className="discover-strip">
-            <div className="discover-icon">
-              <Bookmark size={17} />
-            </div>
-
-            <div>
-              <strong>A universe takes time.</strong>
-              <p>
-                Your reading history, discoveries and favourite passages
-                will find their home here.
-              </p>
-            </div>
-
-            <div className="discover-decoration">✧</div>
-          </section>
+            </section>
+          )}
 
           <footer>
             <span>THE READING UNIVERSE</span>
