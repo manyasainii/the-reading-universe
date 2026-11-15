@@ -1392,3 +1392,512 @@
     font-size: 9px;
   }
 }
+/* =========================================
+   CELESTIAL LIBRARY THEME
+   ========================================= */
+
+.library-page {
+  color: #eeeaff;
+}
+
+.library-eyebrow {
+  color: #aaa0d1;
+}
+
+.library-eyebrow span {
+  background: #9b8ad8;
+}
+
+.library-intro h1 {
+  color: #f0edff;
+}
+
+.library-intro h1 em,
+.book-modal h2 em {
+  color: #b8d8f0;
+}
+
+.library-intro p {
+  color: #aaa5c6;
+}
+
+.library-add-button {
+  border-color: #c5b5f5;
+  background: linear-gradient(120deg, #c5b5f5, #a9cce8);
+  color: #17142d;
+  box-shadow: 0 0 18px rgba(155, 138, 216, 0.1);
+}
+
+.library-add-button:hover {
+  background: linear-gradient(120deg, #ded5ff, #c0e3f8);
+  border-color: #ded5ff;
+}
+
+.library-summary {
+  border-color: rgba(184, 166, 238, 0.19);
+  background: linear-gradient(110deg, #191832, #131329);
+}
+
+.summary-number {
+  color: #eeeaff;
+}
+
+.summary-label {
+  color: #a19bbd;
+}
+
+.summary-divider {
+  background: rgba(184, 166, 238, 0.2);
+}
+
+.shelf-sidebar {
+  border-right-color: rgba(184, 166, 238, 0.16);
+}
+
+.shelf-heading {
+  color: #aaa0d1;
+}
+
+.shelf-button {
+  color: #aaa6c7;
+}
+
+.shelf-button:hover,
+.shelf-selected {
+  color: #e5dcff;
+  background: rgba(155, 138, 216, 0.12);
+}
+
+.shelf-selected {
+  box-shadow: inset 2px 0 #9b8ad8;
+}
+
+.shelf-button small {
+  color: #777392;
+}
+
+.shelf-selected small {
+  color: #b8d8f0;
+}
+
+.shelf-note {
+  border-color: rgba(184, 166, 238, 0.2);
+  background: rgba(155, 138, 216, 0.06);
+  color: #b8d8f0;
+}
+
+.shelf-note p {
+  color: #aaa4c8;
+}
+
+.collection-toolbar h2 {
+  color: #eeeaff;
+}
+
+.collection-toolbar > div:first-child > span {
+  color: #9993b5;
+}
+
+.library-search,
+.library-sort {
+  border-color: rgba(184, 166, 238, 0.2);
+  background: #15152e;
+  color: #aaa4c8;
+}
+
+.library-search input {
+  color: #eeeaff;
+}
+
+.library-search input::placeholder {
+  color: #777392;
+}
+
+.library-search button {
+  color: #aaa4c8;
+}
+
+.library-sort select {
+  color: #c3bddf;
+}
+
+.library-sort select option,
+.book-status-select option,
+.book-rating-select option,
+.book-form-field select option {
+  background: #191832;
+  color: #eeeaff;
+}
+
+.book-cover {
+  border-color: rgba(184, 166, 238, 0.22);
+  background: #191832;
+  box-shadow: 5px 7px 15px rgba(0, 0, 0, 0.3);
+}
+
+.book-card:hover .book-cover {
+  box-shadow: 7px 12px 22px rgba(0, 0, 0, 0.45);
+}
+
+.book-cover-placeholder {
+  color: #b8d8f0;
+  background:
+    radial-gradient(ellipse at 50% 25%, rgba(155, 138, 216, 0.28), transparent 55%),
+    linear-gradient(145deg, #393064, #17152e 75%);
+}
+
+.book-cover-placeholder span {
+  color: #eeeaff;
+}
+
+.book-cover-placeholder small {
+  color: #b0a6d5;
+}
+
+.book-delete {
+  color: #eeeaff;
+  background: rgba(11, 11, 29, 0.85);
+  border-color: rgba(184, 216, 240, 0.2);
+}
+
+.book-card-details h3 {
+  color: #eeeaff;
+}
+
+.book-card-details > p {
+  color: #aaa4c8;
+}
+
+.book-card-meta {
+  color: #8983a7;
+}
+
+.book-rating {
+  color: #b8d8f0;
+}
+
+.book-status-select,
+.book-rating-select {
+  border-color: rgba(184, 166, 238, 0.2);
+  background: #15152e;
+  color: #c0b9dc;
+}
+
+.book-status-select:focus,
+.book-rating-select:focus {
+  border-color: #b8d8f0;
+}
+
+.library-empty,
+.library-loading {
+  border-color: rgba(184, 166, 238, 0.25);
+  background: rgba(155, 138, 216, 0.035);
+}
+
+.library-empty-icon {
+  color: #b8d8f0;
+  border-color: rgba(184, 216, 240, 0.3);
+  background: rgba(155, 138, 216, 0.1);
+}
+
+.library-empty h3 {
+  color: #eeeaff;
+}
+
+.library-empty p,
+.library-loading p {
+  color: #aaa4c8;
+}
+
+.library-loading {
+  color: #b8d8f0;
+}
+
+.library-error {
+  border-color: rgba(220, 125, 145, 0.35);
+  background: rgba(220, 125, 145, 0.08);
+  color: #e7a9bb;
+}
+
+.book-modal-backdrop {
+  background: rgba(5, 5, 19, 0.82);
+}
+
+.book-modal {
+  border-color: rgba(184, 166, 238, 0.3);
+  background:
+    radial-gradient(ellipse at top right, rgba(155, 138, 216, 0.14), transparent 45%),
+    #17162f;
+}
+
+.book-modal h2 {
+  color: #f0edff;
+}
+
+.book-modal-close {
+  color: #aaa4c8;
+}
+
+.book-form-field {
+  color: #c0b9dc;
+}
+
+.book-form-field input,
+.book-form-field select,
+.book-form-field textarea {
+  border-color: rgba(184, 166, 238, 0.22);
+  background: #101027;
+  color: #eeeaff;
+}
+
+.book-form-field input::placeholder,
+.book-form-field textarea::placeholder {
+  color: #777392;
+}
+
+.book-form-field input:focus,
+.book-form-field select:focus,
+.book-form-field textarea:focus {
+  border-color: #b8d8f0;
+}
+
+.book-cancel-button {
+  border-color: rgba(184, 166, 238, 0.25);
+  color: #c0b9dc;
+}
+
+.book-cancel-button:hover {
+  border-color: #9b8ad8;
+  color: #eeeaff;
+}
+
+/* Catalogue lookup */
+
+.book-lookup {
+  border-color: rgba(184, 166, 238, 0.22);
+  background: rgba(155, 138, 216, 0.07);
+}
+
+.book-lookup-heading {
+  color: #b8d8f0;
+}
+
+.book-lookup-form {
+  border-color: rgba(184, 166, 238, 0.25);
+  background: #101027;
+  color: #b8d8f0;
+}
+
+.book-lookup-form input {
+  color: #eeeaff;
+}
+
+.book-lookup-form input::placeholder {
+  color: #777392;
+}
+
+.book-lookup-form button {
+  background: linear-gradient(120deg, #c5b5f5, #a9cce8);
+  color: #17142d;
+}
+
+.book-lookup-message {
+  color: #e1a9bb;
+}
+
+.book-search-results::-webkit-scrollbar-thumb {
+  background: rgba(155, 138, 216, 0.45);
+}
+
+.book-search-result {
+  color: #eeeaff;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.book-search-result:hover,
+.book-search-result.result-selected {
+  border-color: rgba(184, 216, 240, 0.35);
+  background: rgba(155, 138, 216, 0.12);
+}
+
+.book-result-cover {
+  background: #29234b;
+  color: #b8d8f0;
+  border-color: rgba(184, 166, 238, 0.25);
+}
+
+.book-result-copy strong {
+  color: #eeeaff;
+}
+
+.book-result-copy span {
+  color: #aaa4c8;
+}
+
+.book-result-copy small {
+  color: #8983a7;
+}
+
+.result-check {
+  color: #b8d8f0;
+}
+
+.result-plus {
+  color: #aaa0d1;
+}
+
+.book-lookup-hint {
+  color: #9993b5;
+}
+
+.book-form-divider {
+  color: #9993b5;
+}
+
+.book-form-divider::before,
+.book-form-divider::after {
+  background: rgba(184, 166, 238, 0.18);
+}
+
+/* =========================================
+   THE READING TOWER: CELESTIAL EDITION
+   ========================================= */
+
+.reading-tower {
+  border-color: rgba(184, 166, 238, 0.25);
+  background:
+    radial-gradient(ellipse at 15% 100%, rgba(116, 94, 183, 0.22), transparent 55%),
+    radial-gradient(ellipse at 90% 0%, rgba(105, 151, 190, 0.12), transparent 45%),
+    linear-gradient(125deg, #1b1939, #111127 70%, #201b3d);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.28);
+}
+
+.reading-tower::before {
+  background: linear-gradient(90deg, transparent, #b8d8f0, transparent);
+}
+
+.tower-heading {
+  border-bottom-color: rgba(184, 166, 238, 0.19);
+}
+
+.tower-eyebrow {
+  color: #b8d8f0;
+}
+
+.tower-heading h2 {
+  color: #f0edff;
+}
+
+.tower-heading h2 em {
+  color: #b8d8f0;
+}
+
+.tower-heading p {
+  color: #aaa4c8;
+}
+
+.tower-goal-label {
+  color: #aaa0d1;
+}
+
+.tower-goal-value {
+  color: #c6b8f4;
+}
+
+.tower-goal-value svg {
+  color: #b8d8f0;
+}
+
+.tower-goal-edit input {
+  border-color: rgba(184, 166, 238, 0.4);
+  background: #101027;
+  color: #eeeaff;
+}
+
+.tower-goal-edit button {
+  border-color: rgba(184, 166, 238, 0.3);
+  background: rgba(155, 138, 216, 0.13);
+  color: #b8d8f0;
+}
+
+.tower-goal-error {
+  color: #e7a9bb;
+}
+
+.tower-visual {
+  border-bottom-color: #7770ad;
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(155, 138, 216, 0.2), transparent 65%);
+}
+
+.tower-stack {
+  scrollbar-color: #7770ad transparent;
+}
+
+.tower-stack::-webkit-scrollbar-thumb {
+  background: #7770ad;
+}
+
+.tower-book {
+  border-top-color: rgba(255, 255, 255, 0.25);
+  border-bottom-color: rgba(0, 0, 0, 0.5);
+  color: #f0edff;
+  box-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.4),
+    inset 3px 0 4px rgba(255, 255, 255, 0.08);
+}
+
+.tower-book-author {
+  color: rgba(235, 230, 255, 0.72);
+}
+
+.tower-book-pages {
+  background: rgba(210, 220, 255, 0.3);
+}
+
+.tower-base {
+  background: linear-gradient(180deg, #a9a1d8, #51477e 60%, #292344);
+}
+
+.tower-empty {
+  color: #aaa4c8;
+}
+
+.tower-count strong {
+  color: #eeeaff;
+}
+
+.tower-count span {
+  color: #b8d8f0;
+}
+
+.tower-progress-track {
+  background: rgba(184, 166, 238, 0.15);
+}
+
+.tower-progress-fill {
+  background: linear-gradient(90deg, #7868bd, #b8d8f0);
+  box-shadow: 0 0 12px rgba(184, 216, 240, 0.25);
+}
+
+.tower-progress-labels {
+  color: #aaa4c8;
+}
+
+.tower-message {
+  color: #d8d0ff;
+}
+
+.tower-message svg {
+  color: #b8d8f0;
+}
+
+.tower-date-note {
+  color: #8983a7;
+}
+
+@media (max-width: 700px) {
+  .shelf-sidebar {
+    border-bottom-color: rgba(184, 166, 238, 0.16);
+  }
+}
