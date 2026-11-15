@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Plus, Search, BookOpen, BookMarked, Clock3, Bookmark,
   Star, X, Trash2, SlidersHorizontal, Library as LibraryIcon,
+  LoaderCircle, Check,
 } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import './Library.css';
@@ -31,6 +32,7 @@ const emptyForm = {
   author: '',
   reading_status: 'want_to_read',
   rating: '',
+  cover_url: '',
 };
 
 function Library() {
@@ -43,6 +45,12 @@ function Library() {
   const [error, setError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
+
+  const [bookSearch, setBookSearch] = useState('');
+  const [bookResults, setBookResults] = useState([]);
+  const [searchingBooks, setSearchingBooks] = useState(false);
+  const [bookSearchError, setBookSearchError] = useState('');
+  const [selectedBook, setSelectedBook] = useState(null);
 
   useEffect(() => {
     fetchBooks();
@@ -71,6 +79,77 @@ function Library() {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
+  async function searchForBooks(event) {
+    event.preventDefault();
+
+    const query = bookSearch.trim();
+
+    if (!query) return;
+
+    setSearchingBooks(true);
+    setBookSearchError('');
+    setBookResults([]);
+    setSelectedBook(null);
+
+    try {
+      const url = new URL('https://www.googleapis.com/books/v1/volumes');
+      url.searchParams.set('q', `intitle:${query}`);
+      url.searchParams.set('maxResults', '10');
+      url.searchParams.set('printType', 'books');
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error('The book search service is unavailable. Try again.');
+      }
+
+      const data = await response.json();
+
+      const results = (data.items || []).map((item) => {
+        const info = item.volumeInfo || {};
+        const imageLinks = info.imageLinks || {};
+
+        let cover = imageLinks.thumbnail || imageLinks.smallThumbnail || '';
+
+        if (cover.startsWith('http://')) {
+          cover = cover.replace('http://', 'https://');
+        }
+
+        return {
+          id: item.id,
+          title: info.title || 'Untitled',
+          author: (info.authors || []).join(', '),
+          cover_url: cover,
+          publisher: info.publisher || '',
+          published_date: info.publishedDate || '',
+        };
+      });
+
+      setBookResults(results);
+
+      if (results.length === 0) {
+        setBookSearchError('No books found. Try another title or add it manually.');
+      }
+    } catch (searchError) {
+      setBookSearchError(
+        searchError.message || 'Something went wrong. Please try again.'
+      );
+    }
+
+    setSearchingBooks(false);
+  }
+
+  function chooseBook(book) {
+    setSelectedBook(book);
+
+    setForm((current) => ({
+      ...current,
+      title: book.title,
+      author: book.author,
+      cover_url: book.cover_url,
+    }));
+  }
+
   async function addBook(event) {
     event.preventDefault();
 
@@ -87,6 +166,7 @@ function Library() {
       author: form.author.trim() || null,
       reading_status: form.reading_status,
       rating: form.rating ? Number(form.rating) : null,
+      cover_url: form.cover_url || null,
       date_finished:
         form.reading_status === 'read'
           ? new Date().toISOString().slice(0, 10)
@@ -108,7 +188,15 @@ function Library() {
     setBooks((current) => [data, ...current]);
     setForm(emptyForm);
     setModalOpen(false);
+    resetBookSearch();
     setSaving(false);
+  }
+
+  function resetBookSearch() {
+    setBookSearch('');
+    setBookResults([]);
+    setBookSearchError('');
+    setSelectedBook(null);
   }
 
   async function updateBook(id, changes) {
@@ -210,6 +298,7 @@ function Library() {
   function openAddBook() {
     setError('');
     setForm(emptyForm);
+    resetBookSearch();
     setModalOpen(true);
   }
 
@@ -481,6 +570,81 @@ function Library() {
               </button>
             </div>
 
+            <div className="book-lookup">
+              <div className="book-lookup-heading">
+                FIND YOUR BOOK
+              </div>
+
+              <form className="book-lookup-form" onSubmit={searchForBooks}>
+                <Search size={16} />
+                <input
+                  value={bookSearch}
+                  onChange={(event) => setBookSearch(event.target.value)}
+                  placeholder="Search by book title..."
+                  aria-label="Search book catalogue"
+                />
+                <button
+                  type="submit"
+                  disabled={searchingBooks || !bookSearch.trim()}
+                >
+                  {searchingBooks ? (
+                    <LoaderCircle size={16} className="lookup-spinner" />
+                  ) : (
+                    'Search'
+                  )}
+                </button>
+              </form>
+
+              {bookSearchError && (
+                <p className="book-lookup-message">{bookSearchError}</p>
+              )}
+
+              {bookResults.length > 0 && (
+                <div className="book-search-results">
+                  {bookResults.map((book) => (
+                    <button
+                      type="button"
+                      key={book.id}
+                      className={`book-search-result ${
+                        selectedBook?.id === book.id ? 'result-selected' : ''
+                      }`}
+                      onClick={() => chooseBook(book)}
+                    >
+                      <div className="book-result-cover">
+                        {book.cover_url ? (
+                          <img src={book.cover_url} alt="" />
+                        ) : (
+                          <BookOpen size={20} />
+                        )}
+                      </div>
+
+                      <div className="book-result-copy">
+                        <strong>{book.title}</strong>
+                        <span>{book.author || 'Author unavailable'}</span>
+                        {book.publisher && (
+                          <small>{book.publisher}</small>
+                        )}
+                      </div>
+
+                      {selectedBook?.id === book.id ? (
+                        <Check size={17} className="result-check" />
+                      ) : (
+                        <Plus size={17} className="result-plus" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <p className="book-lookup-hint">
+                Choose a result to fill in the title, author and cover.
+              </p>
+            </div>
+
+            <div className="book-form-divider">
+              <span>OR ADD MANUALLY</span>
+            </div>
+
             <form onSubmit={addBook}>
               <label className="book-form-field">
                 Book title *
@@ -488,7 +652,10 @@ function Library() {
                   required
                   autoFocus
                   value={form.title}
-                  onChange={(event) => updateForm('title', event.target.value)}
+                  onChange={(event) => {
+                    updateForm('title', event.target.value);
+                    setSelectedBook(null);
+                  }}
                   placeholder="The name of the book"
                 />
               </label>
