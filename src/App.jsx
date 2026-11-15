@@ -13,10 +13,12 @@ import {
   X,
   Feather,
   LogOut,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 import Auth from './Auth.jsx';
 import Library from './Library.jsx';
+import GoodreadsImport from './GoodreadsImport.jsx';
 import { supabase } from './lib/supabase';
 
 const navItems = [
@@ -32,6 +34,11 @@ function App() {
   const [activeNav, setActiveNav] = useState('Your library');
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+
+  const [importOpen, setImportOpen] = useState(false);
+  const [existingBooks, setExistingBooks] = useState([]);
+  const [loadingImportData, setLoadingImportData] = useState(false);
+  const [libraryVersion, setLibraryVersion] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -70,6 +77,28 @@ function App() {
     if (error) {
       console.error('Sign out failed:', error.message);
     }
+  }
+
+  async function openGoodreadsImport() {
+    setLoadingImportData(true);
+
+    const { data, error } = await supabase
+      .from('user_books')
+      .select('id, title, author, goodreads_book_id');
+
+    if (error) {
+      console.error('Could not load existing books:', error.message);
+      setExistingBooks([]);
+    } else {
+      setExistingBooks(data || []);
+    }
+
+    setLoadingImportData(false);
+    setImportOpen(true);
+  }
+
+  async function handleImportComplete() {
+    setLibraryVersion((current) => current + 1);
   }
 
   if (authLoading) {
@@ -184,6 +213,33 @@ function App() {
           </div>
 
           <div className="top-actions">
+            {activeNav === 'Your library' && (
+              <button
+                className="icon-button"
+                onClick={openGoodreadsImport}
+                disabled={loadingImportData}
+                title="Import your Goodreads library"
+                aria-label="Import Goodreads library"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 7,
+                  width: 'auto',
+                  padding: '0 11px',
+                  border: '1px solid rgba(197,168,117,.3)',
+                  color: '#c5a875',
+                  background: 'rgba(197,168,117,.06)',
+                  fontSize: 10,
+                  whiteSpace: 'nowrap',
+                  opacity: loadingImportData ? .6 : 1,
+                }}
+              >
+                <FileSpreadsheet size={15} />
+                {loadingImportData ? 'Preparing...' : 'Import Goodreads'}
+              </button>
+            )}
+
             <div className="search-trigger">
               <Search size={16} />
               <span>Search your universe</span>
@@ -205,7 +261,7 @@ function App() {
 
         <div className="page-wrap">
           {activeNav === 'Your library' ? (
-            <Library />
+            <Library key={libraryVersion} />
           ) : (
             <section className="library-page">
               <div className="library-intro">
@@ -260,6 +316,14 @@ function App() {
           </footer>
         </div>
       </main>
+
+      {importOpen && (
+        <GoodreadsImport
+          existingBooks={existingBooks}
+          onClose={() => setImportOpen(false)}
+          onImported={handleImportComplete}
+        />
+      )}
     </div>
   );
 }
