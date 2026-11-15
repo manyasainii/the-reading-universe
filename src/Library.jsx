@@ -1,17 +1,8 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Plus,
-  Search,
-  BookOpen,
-  BookMarked,
-  Clock3,
-  Bookmark,
-  Star,
-  X,
-  Trash2,
-  SlidersHorizontal,
-  Library as LibraryIcon,
+  Plus, Search, BookOpen, BookMarked, Clock3, Bookmark,
+  Star, X, Trash2, SlidersHorizontal, Library as LibraryIcon,
 } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import './Library.css';
@@ -22,6 +13,17 @@ const shelves = [
   { id: 'read', label: 'Read', icon: BookMarked },
   { id: 'want_to_read', label: 'Want to read', icon: Bookmark },
   { id: 'did_not_finish', label: 'Did not finish', icon: Clock3 },
+];
+
+const ratingOptions = [
+  { value: '', label: 'Not rated' },
+  ...Array.from({ length: 10 }, (_, index) => {
+    const rating = (index + 1) / 2;
+    return {
+      value: String(rating),
+      label: `${rating} ${rating === 1 ? 'star' : 'stars'}`,
+    };
+  }),
 ];
 
 const emptyForm = {
@@ -66,10 +68,7 @@ function Library() {
   }
 
   function updateForm(field, value) {
-    setForm((current) => ({
-      ...current,
-      [field]: value,
-    }));
+    setForm((current) => ({ ...current, [field]: value }));
   }
 
   async function addBook(event) {
@@ -222,9 +221,7 @@ function Library() {
             <span />
             YOUR PERSONAL COLLECTION
           </div>
-          <h1>
-            Your <em>library.</em>
-          </h1>
+          <h1>Your <em>library.</em></h1>
           <p>Every story you've read, and every story still waiting.</p>
         </div>
 
@@ -325,9 +322,7 @@ function Library() {
           </div>
 
           {error && (
-            <div className="library-error" role="alert">
-              {error}
-            </div>
+            <div className="library-error" role="alert">{error}</div>
           )}
 
           {loading ? (
@@ -395,10 +390,10 @@ function Library() {
                     <p>{book.author || 'Author unknown'}</p>
 
                     <div className="book-card-meta">
-                      {book.rating && (
+                      {book.rating != null && (
                         <span className="book-rating">
                           <Star size={12} fill="currentColor" />
-                          {book.rating}/5
+                          {Number(book.rating).toFixed(1).replace('.0', '')}/5
                         </span>
                       )}
                     </div>
@@ -421,9 +416,7 @@ function Library() {
                       }}
                       aria-label={`Reading status for ${book.title}`}
                     >
-                      <option value="currently_reading">
-                        Currently reading
-                      </option>
+                      <option value="currently_reading">Currently reading</option>
                       <option value="read">Read</option>
                       <option value="want_to_read">Want to read</option>
                       <option value="did_not_finish">Did not finish</option>
@@ -431,7 +424,7 @@ function Library() {
 
                     <select
                       className="book-rating-select"
-                      value={book.rating || ''}
+                      value={book.rating ?? ''}
                       onChange={(event) =>
                         updateBook(book.id, {
                           rating: event.target.value
@@ -441,12 +434,11 @@ function Library() {
                       }
                       aria-label={`Rating for ${book.title}`}
                     >
-                      <option value="">No rating</option>
-                      <option value="1">1 star</option>
-                      <option value="2">2 stars</option>
-                      <option value="3">3 stars</option>
-                      <option value="4">4 stars</option>
-                      <option value="5">5 stars</option>
+                      {ratingOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </article>
@@ -477,9 +469,7 @@ function Library() {
                   <span />
                   A NEW ARRIVAL
                 </div>
-                <h2 id="add-book-title">
-                  Add a <em>book.</em>
-                </h2>
+                <h2 id="add-book-title">Add a <em>book.</em></h2>
               </div>
 
               <button
@@ -498,9 +488,7 @@ function Library() {
                   required
                   autoFocus
                   value={form.title}
-                  onChange={(event) =>
-                    updateForm('title', event.target.value)
-                  }
+                  onChange={(event) => updateForm('title', event.target.value)}
                   placeholder="The name of the book"
                 />
               </label>
@@ -509,9 +497,7 @@ function Library() {
                 Author
                 <input
                   value={form.author}
-                  onChange={(event) =>
-                    updateForm('author', event.target.value)
-                  }
+                  onChange={(event) => updateForm('author', event.target.value)}
                   placeholder="Who wrote it?"
                 />
               </label>
@@ -535,23 +521,18 @@ function Library() {
                 Your rating
                 <select
                   value={form.rating}
-                  onChange={(event) =>
-                    updateForm('rating', event.target.value)
-                  }
+                  onChange={(event) => updateForm('rating', event.target.value)}
                 >
-                  <option value="">Not rated</option>
-                  <option value="1">1 star</option>
-                  <option value="2">2 stars</option>
-                  <option value="3">3 stars</option>
-                  <option value="4">4 stars</option>
-                  <option value="5">5 stars</option>
+                  {ratingOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
               </label>
 
               {error && (
-                <div className="library-error" role="alert">
-                  {error}
-                </div>
+                <div className="library-error" role="alert">{error}</div>
               )}
 
               <div className="book-modal-actions">
