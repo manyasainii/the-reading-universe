@@ -1,4 +1,6 @@
+
 import React, { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   BookOpen,
   Pencil,
@@ -339,127 +341,130 @@ function ReadingTower({ books = [] }) {
         </div>
       </div>
 
-      {editorOpen && (
-        <div
-          className="tower-editor-backdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setEditorOpen(false);
-            }
-          }}
-        >
-          <section
-            className="tower-editor"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="tower-editor-title"
+      {editorOpen && createPortal(
+        (
+          <div
+            className="tower-editor-backdrop"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) {
+                setEditorOpen(false);
+              }
+            }}
           >
-            <div className="tower-editor-header">
-              <div>
-                <div className="tower-eyebrow">
-                  <Sparkles size={12} />
-                  YOUR PERSONAL COLLECTION
+            <section
+              className="tower-editor"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="tower-editor-title"
+            >
+              <div className="tower-editor-header">
+                <div>
+                  <div className="tower-eyebrow">
+                    <Sparkles size={12} />
+                    YOUR PERSONAL COLLECTION
+                  </div>
+                  <h2 id="tower-editor-title">
+                    Edit your <em>tower.</em>
+                  </h2>
+                  <p>
+                    Choose which books deserve a place in your display.
+                  </p>
                 </div>
-                <h2 id="tower-editor-title">
-                  Edit your <em>tower.</em>
-                </h2>
-                <p>
-                  Choose which books deserve a place in your display.
-                </p>
+
+                <button
+                  className="tower-editor-close"
+                  onClick={() => setEditorOpen(false)}
+                  aria-label="Close tower editor"
+                >
+                  <X size={19} />
+                </button>
               </div>
 
-              <button
-                className="tower-editor-close"
-                onClick={() => setEditorOpen(false)}
-                aria-label="Close tower editor"
-              >
-                <X size={19} />
-              </button>
-            </div>
-
-            <div className="tower-editor-summary">
-              <strong>{towerBooks.length} books in your tower</strong>
-              <button onClick={resetTower}>
-                Reset to 2026 completed books
-              </button>
-            </div>
-
-            <label className="tower-editor-search">
-              <Search size={16} />
-              <input
-                value={towerSearch}
-                onChange={(event) => setTowerSearch(event.target.value)}
-                placeholder="Find a book in your library..."
-                autoFocus
-              />
-              {towerSearch && (
-                <button
-                  onClick={() => setTowerSearch('')}
-                  aria-label="Clear search"
-                >
-                  <X size={14} />
+              <div className="tower-editor-summary">
+                <strong>{towerBooks.length} books in your tower</strong>
+                <button onClick={resetTower}>
+                  Reset to 2026 completed books
                 </button>
-              )}
-            </label>
+              </div>
 
-            <div className="tower-editor-list">
-              {availableBooks.map((book) => {
-                const isSelected = selectedIds.includes(book.id);
+              <label className="tower-editor-search">
+                <Search size={16} />
+                <input
+                  value={towerSearch}
+                  onChange={(event) => setTowerSearch(event.target.value)}
+                  placeholder="Find a book in your library..."
+                  autoFocus
+                />
+                {towerSearch && (
+                  <button
+                    onClick={() => setTowerSearch('')}
+                    aria-label="Clear search"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </label>
 
-                return (
-                  <div className="tower-editor-book" key={book.id}>
-                    <div className="tower-editor-book-copy">
-                      <strong>{book.title}</strong>
-                      <span>{book.author || 'Unknown author'}</span>
-                      <small>
-                        {book.reading_status === 'read'
-                          ? 'Read'
-                          : book.reading_status === 'currently_reading'
-                          ? 'Currently reading'
-                          : book.reading_status === 'did_not_finish'
-                          ? 'Did not finish'
-                          : 'Want to read'}
-                      </small>
+              <div className="tower-editor-list">
+                {availableBooks.map((book) => {
+                  const isSelected = selectedIds.includes(book.id);
+
+                  return (
+                    <div className="tower-editor-book" key={book.id}>
+                      <div className="tower-editor-book-copy">
+                        <strong>{book.title}</strong>
+                        <span>{book.author || 'Unknown author'}</span>
+                        <small>
+                          {book.reading_status === 'read'
+                            ? 'Read'
+                            : book.reading_status === 'currently_reading'
+                            ? 'Currently reading'
+                            : book.reading_status === 'did_not_finish'
+                            ? 'Did not finish'
+                            : 'Want to read'}
+                        </small>
+                      </div>
+
+                      {isSelected ? (
+                        <button
+                          className="tower-remove-button"
+                          onClick={() => removeFromTower(book.id)}
+                        >
+                          <Trash2 size={14} />
+                          Remove
+                        </button>
+                      ) : (
+                        <button
+                          className="tower-add-button"
+                          onClick={() => addToTower(book.id)}
+                        >
+                          <Plus size={14} />
+                          Add
+                        </button>
+                      )}
                     </div>
+                  );
+                })}
 
-                    {isSelected ? (
-                      <button
-                        className="tower-remove-button"
-                        onClick={() => removeFromTower(book.id)}
-                      >
-                        <Trash2 size={14} />
-                        Remove
-                      </button>
-                    ) : (
-                      <button
-                        className="tower-add-button"
-                        onClick={() => addToTower(book.id)}
-                      >
-                        <Plus size={14} />
-                        Add
-                      </button>
-                    )}
+                {availableBooks.length === 0 && (
+                  <div className="tower-editor-empty">
+                    No matching books in your library.
                   </div>
-                );
-              })}
+                )}
+              </div>
 
-              {availableBooks.length === 0 && (
-                <div className="tower-editor-empty">
-                  No matching books in your library.
-                </div>
-              )}
-            </div>
-
-            <div className="tower-editor-footer">
-              <span>
-                Changes are saved automatically and won't alter your reading records.
-              </span>
-              <button onClick={() => setEditorOpen(false)}>
-                Done
-              </button>
-            </div>
-          </section>
-        </div>
+              <div className="tower-editor-footer">
+                <span>
+                  Changes are saved automatically and won't alter your reading records.
+                </span>
+                <button onClick={() => setEditorOpen(false)}>
+                  Done
+                </button>
+              </div>
+            </section>
+          </div>
+        ),
+        document.body
       )}
     </section>
   );
