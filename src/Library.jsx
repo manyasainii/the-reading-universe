@@ -79,11 +79,10 @@ function Library() {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
-   async function searchForBooks(event) {   event.preventDefault();    const query = bookSearch.trim();   if (!query) return;    setSearchingBooks(true);   setBookSearchError('');   setBookResults([]);   setSelectedBook(null);    try {     const url = new URL('https://www.googleapis.com/books/v1/volumes');      url.searchParams.set('q', `intitle:${query}`);     url.searchParams.set('maxResults', '10');     url.searchParams.set('printType', 'books');      const response = await fetch(url);     const data = await response.json().catch(() => ({}));      if (!response.ok) {       const detail =         data.error?.message ||         response.statusText ||         'Unknown server error';        throw new Error(         `Google Books returned HTTP ${response.status}: ${detail}`       );     }      const results = (data.items || []).map((item) => {       const info = item.volumeInfo || {};       const imageLinks = info.imageLinks || {};        let cover =         imageLinks.thumbnail ||         imageLinks.smallThumbnail ||         '';        if (cover.startsWith('http://')) {         cover = cover.replace('http://', 'https://');       }        return {         id: item.id,         title: info.title || 'Untitled',         author: (info.authors || []).join(', '),         cover_url: cover,         publisher: info.publisher || '',         published_date: info.publishedDate || '',       };     });      setBookResults(results);      if (results.length === 0) {       setBookSearchError(         'No books found. Try another title or add it manually.'       );     }   } catch (searchError) {     console.error('Book catalogue search failed:', searchError);      setBookSearchError(       searchError.message?.includes('HTTP')         ? searchError.message         : `Could not reach Google Books: ${searchError.message || 'Network error'}`     );   } finally {     setSearchingBooks(false);   } }
+  async function searchForBooks(event) {
     event.preventDefault();
 
     const query = bookSearch.trim();
-
     if (!query) return;
 
     setSearchingBooks(true);
@@ -93,23 +92,33 @@ function Library() {
 
     try {
       const url = new URL('https://www.googleapis.com/books/v1/volumes');
+
       url.searchParams.set('q', `intitle:${query}`);
       url.searchParams.set('maxResults', '10');
       url.searchParams.set('printType', 'books');
 
       const response = await fetch(url);
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error('The book search service is unavailable. Try again.');
-      }
+        const detail =
+          data.error?.message ||
+          response.statusText ||
+          'Unknown server error';
 
-      const data = await response.json();
+        throw new Error(
+          `Google Books returned HTTP ${response.status}: ${detail}`
+        );
+      }
 
       const results = (data.items || []).map((item) => {
         const info = item.volumeInfo || {};
         const imageLinks = info.imageLinks || {};
 
-        let cover = imageLinks.thumbnail || imageLinks.smallThumbnail || '';
+        let cover =
+          imageLinks.thumbnail ||
+          imageLinks.smallThumbnail ||
+          '';
 
         if (cover.startsWith('http://')) {
           cover = cover.replace('http://', 'https://');
@@ -128,15 +137,21 @@ function Library() {
       setBookResults(results);
 
       if (results.length === 0) {
-        setBookSearchError('No books found. Try another title or add it manually.');
+        setBookSearchError(
+          'No books found. Try another title or add it manually.'
+        );
       }
     } catch (searchError) {
-      setBookSearchError(
-        searchError.message || 'Something went wrong. Please try again.'
-      );
-    }
+      console.error('Book catalogue search failed:', searchError);
 
-    setSearchingBooks(false);
+      setBookSearchError(
+        searchError.message?.includes('HTTP')
+          ? searchError.message
+          : `Could not reach Google Books: ${searchError.message || 'Network error'}`
+      );
+    } finally {
+      setSearchingBooks(false);
+    }
   }
 
   function chooseBook(book) {
