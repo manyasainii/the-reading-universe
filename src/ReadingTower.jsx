@@ -7,7 +7,6 @@ import {
   X,
   Sparkles,
 } from 'lucide-react';
-import './ReadingTower.css';
 
 const YEAR = 2026;
 const DEFAULT_GOAL = 100;
