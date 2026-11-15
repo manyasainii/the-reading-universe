@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   X, Search, LoaderCircle, Check, BookOpen,
-  ChevronLeft, ChevronRight, RefreshCw, ImageOff,
+  ChevronRight, RefreshCw, ImageOff, Sparkles,
 } from 'lucide-react';
 import { supabase } from './lib/supabase';
 
@@ -18,6 +18,10 @@ function normalize(value) {
     .trim();
 }
 
+function cleanISBN(value) {
+  return (value || '').replace(/[^0-9Xx]/g, '').toUpperCase();
+}
+
 function CoverRecovery({ onClose, onUpdated }) {
   const [books, setBooks] = useState([]);
   const [batch, setBatch] = useState([]);
@@ -27,7 +31,6 @@ function CoverRecovery({ onClose, onUpdated }) {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [offset, setOffset] = useState(0);
-  const [total, setTotal] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [savedCount, setSavedCount] = useState(0);
 
@@ -40,9 +43,9 @@ function CoverRecovery({ onClose, onUpdated }) {
     setOffset(0);
     setLoaded(false);
 
-    const { data, error: fetchError, count } = await supabase
+    const { data, error: fetchError } = await supabase
       .from('user_books')
-      .select('id, title, author, isbn, cover_url', { count: 'exact' })
+      .select('id, title, author, isbn, cover_url')
       .or('cover_url.is.null,cover_url.eq.')
       .order('title', { ascending: true });
 
@@ -53,7 +56,6 @@ function CoverRecovery({ onClose, onUpdated }) {
     }
 
     setBooks(data || []);
-    setTotal(count ?? data?.length ?? 0);
     setLoaded(true);
     setLoading(false);
 
@@ -66,10 +68,7 @@ function CoverRecovery({ onClose, onUpdated }) {
     const url = new URL('https://openlibrary.org/search.json');
 
     if (book.isbn) {
-      url.searchParams.set(
-        'isbn',
-        book.isbn.replace(/[^0-9Xx]/g, '')
-      );
+      url.searchParams.set('isbn', cleanISBN(book.isbn));
     } else {
       url.searchParams.set('title', book.title);
       if (book.author) {
@@ -90,6 +89,7 @@ function CoverRecovery({ onClose, onUpdated }) {
     }
 
     const data = await response.json();
+    const originalISBN = cleanISBN(book.isbn);
 
     return (data.docs || [])
       .filter((item) => item.cover_i)
@@ -98,29 +98,38 @@ function CoverRecovery({ onClose, onUpdated }) {
           normalize(item.title) === normalize(book.title);
 
         const authorMatch =
-          !book.author ||
+          Boolean(book.author) &&
           (item.author_name || []).some(
             (author) =>
               normalize(author) === normalize(book.author)
           );
+
+        const isbnMatch =
+          Boolean(originalISBN) &&
+          (item.isbn || []).some(
+            (isbn) => cleanISBN(isbn) === originalISBN
+          );
+
+        let confidence = 'review';
+
+        if (isbnMatch) {
+          confidence = 'isbn';
+        } else if (titleMatch && authorMatch) {
+          confidence = 'exact';
+        }
 
         return {
           id: item.key,
           title: item.title || 'Untitled',
           author: (item.author_name || []).join(', '),
           cover_url: `https://covers.openlibrary.org/b/id/${item.cover_i}-M.jpg`,
-          exactMatch: titleMatch && authorMatch,
-          titleMatch,
+          confidence,
+          isbnMatch,
         };
       })
       .sort((a, b) => {
-        if (a.exactMatch !== b.exactMatch) {
-          return a.exactMatch ? -1 : 1;
-        }
-        if (a.titleMatch !== b.titleMatch) {
-          return a.titleMatch ? -1 : 1;
-        }
-        return 0;
+        const rank = { isbn: 0, exact: 1, review: 2 };
+        return rank[a.confidence] - rank[b.confidence];
       });
   }
 
@@ -136,31 +145,47 @@ function CoverRecovery({ onClose, onUpdated }) {
     const nextBooks = books.slice(start, start + BATCH_SIZE);
     const results = [];
 
-    try {
-      for (let i = 0; i < nextBooks.length; i += 1) {
-        if (i > 0) await sleep(REQUEST_GAP);
+    for (let i = 0; i < nextBooks.length; i += 1) {
+      if (i > 0) await sleep(REQUEST_GAP);
 
-        const book = nextBooks[i];
+      const book = nextBooks[i];
 
-        try {
-          const candidates = await searchCover(book);
-          results.push({ ...book, candidates });
-        } catch (searchError) {
-          results.push({
-            ...book,
-            candidates: [],
-            searchError: searchError.message,
-          });
-        }
+      try {
+        const candidates = await searchCover(book);
+        const best = candidates[0];
+
+        results.push({
+          ...book,
+          candidates,
+          best,
+          confidence: best?.confidence || 'none',
+        });
+      } catch (searchError) {
+        results.push({
+          ...book,
+          candidates: [],
+          best: null,
+          confidence: 'none',
+          searchError: searchError.message,
+        });
       }
-
-      setBatch(results);
-      setOffset(start);
-    } catch (batchError) {
-      setError(batchError.message || 'Unable to search for covers.');
-    } finally {
-      setLoading(false);
     }
+
+    const initialChoices = {};
+
+    results.forEach((book) => {
+      if (
+        book.best &&
+        (book.confidence === 'isbn' || book.confidence === 'exact')
+      ) {
+        initialChoices[book.id] = book.best.cover_url;
+      }
+    });
+
+    setBatch(results);
+    setChoices(initialChoices);
+    setOffset(start);
+    setLoading(false);
   }
 
   function chooseCover(bookId, coverUrl) {
@@ -170,59 +195,90 @@ function CoverRecovery({ onClose, onUpdated }) {
     }));
   }
 
+  function toggleSelection(book) {
+    if (choices[book.id]) {
+      setChoices((current) => {
+        const next = { ...current };
+        delete next[book.id];
+        return next;
+      });
+    } else if (book.best) {
+      chooseCover(book.id, book.best.cover_url);
+    }
+  }
+
   const selectedCount = useMemo(
     () => Object.values(choices).filter(Boolean).length,
     [choices]
   );
 
+  const highConfidenceCount = batch.filter(
+    (book) =>
+      book.confidence === 'isbn' || book.confidence === 'exact'
+  ).length;
+
+  const reviewCount = batch.filter(
+    (book) => book.confidence === 'review'
+  ).length;
+
+  const noMatchCount = batch.filter(
+    (book) => book.confidence === 'none'
+  ).length;
+
   async function saveSelected() {
-    const selected = batch.filter(
-      (book) => choices[book.id]
-    );
+    const selected = batch.filter((book) => choices[book.id]);
 
     if (!selected.length) return;
 
     setSaving(true);
     setError('');
+
     let successful = 0;
+    const failedIds = [];
 
     for (const book of selected) {
-      const { error: updateError } = await supabase
+      const { data, error: updateError } = await supabase
         .from('user_books')
         .update({ cover_url: choices[book.id] })
         .eq('id', book.id)
-        .is('cover_url', null);
+        .or('cover_url.is.null,cover_url.eq.')
+        .select('id');
 
-      if (!updateError) {
+      if (updateError || !data?.length) {
+        failedIds.push(book.id);
+      } else {
         successful += 1;
       }
     }
 
     setSavedCount((current) => current + successful);
+
     setBooks((current) =>
-      current.filter(
-        (book) => !selected.some((item) => item.id === book.id)
-      )
+      current.filter((book) => !selected.some(
+        (item) => item.id === book.id
+      ))
     );
 
     setBatch([]);
     setChoices({});
     setSaving(false);
 
-    if (successful) {
+    if (failedIds.length) {
+      setError(
+        `${successful} covers saved. ${failedIds.length} could not be saved.`
+      );
+    } else if (successful) {
       setMessage(
         `${successful} cover${successful === 1 ? '' : 's'} saved to your library.`
       );
-      if (onUpdated) await onUpdated();
-    } else {
-      setError(
-        'No covers were saved. They may already have been updated.'
-      );
     }
+
+    if (successful && onUpdated) await onUpdated();
   }
 
-  function nextBatch() {
+  function skipBatch() {
     const nextOffset = offset + batch.length;
+
     if (nextOffset < books.length) {
       prepareBatch(nextOffset);
     } else {
@@ -231,7 +287,20 @@ function CoverRecovery({ onClose, onUpdated }) {
     }
   }
 
-  const reviewedCount = books.length - batch.length;
+  function approveHighConfidence() {
+    const next = { ...choices };
+
+    batch.forEach((book) => {
+      if (
+        book.best &&
+        (book.confidence === 'isbn' || book.confidence === 'exact')
+      ) {
+        next[book.id] = book.best.cover_url;
+      }
+    });
+
+    setChoices(next);
+  }
 
   return (
     <div
@@ -250,7 +319,7 @@ function CoverRecovery({ onClose, onUpdated }) {
               Cover <em style={{ color: '#c5a875' }}>recovery.</em>
             </h2>
             <p style={ui.muted}>
-              Review suggested covers before adding them to your library.
+              Strong matches are selected automatically. Review uncertain matches.
             </p>
           </div>
 
@@ -277,11 +346,7 @@ function CoverRecovery({ onClose, onUpdated }) {
               onClick={loadBooks}
               disabled={loading}
             >
-              {loading ? (
-                <LoaderCircle size={15} />
-              ) : (
-                <Search size={15} />
-              )}
+              {loading ? <LoaderCircle size={15} /> : <Search size={15} />}
               Find books without covers
             </button>
           </div>
@@ -291,16 +356,16 @@ function CoverRecovery({ onClose, onUpdated }) {
           <>
             <div style={ui.stats}>
               <div>
-                <strong>{total}</strong>
-                <span>BOOKS NEEDING COVERS</span>
+                <strong>{books.length}</strong>
+                <span>BOOKS IN QUEUE</span>
               </div>
               <div>
                 <strong>{savedCount}</strong>
-                <span>COVERS SAVED THIS SESSION</span>
+                <span>COVERS SAVED</span>
               </div>
               <div>
                 <strong>{BATCH_SIZE}</strong>
-                <span>BOOKS PER REVIEW BATCH</span>
+                <span>PER BATCH</span>
               </div>
             </div>
 
@@ -314,7 +379,7 @@ function CoverRecovery({ onClose, onUpdated }) {
             {!loading && batch.length === 0 && books.length > 0 && (
               <div style={ui.center}>
                 <p style={ui.muted}>
-                  {message || 'Ready to review your first batch.'}
+                  {message || 'Ready to review your next batch.'}
                 </p>
                 <button
                   style={ui.primary}
@@ -331,80 +396,119 @@ function CoverRecovery({ onClose, onUpdated }) {
                 <div style={ui.batchHeading}>
                   <div>
                     <strong>
-                      Review batch {Math.floor(offset / BATCH_SIZE) + 1}
+                      Batch {Math.floor(offset / BATCH_SIZE) + 1}
                     </strong>
                     <p style={ui.muted}>
-                      {batch.length} books · {selectedCount} covers selected
+                      {batch.length} books · {selectedCount} selected
                     </p>
                   </div>
+
                   <button
                     style={ui.secondary}
                     onClick={() => prepareBatch(offset)}
-                    disabled={loading || saving}
+                    disabled={saving}
                   >
                     <RefreshCw size={13} />
                     Search again
                   </button>
                 </div>
 
+                <div style={ui.confidenceSummary}>
+                  <span style={ui.confidenceGood}>
+                    {highConfidenceCount} strong matches
+                  </span>
+                  <span style={ui.confidenceReview}>
+                    {reviewCount} need review
+                  </span>
+                  <span style={ui.confidenceNone}>
+                    {noMatchCount} no match
+                  </span>
+                </div>
+
                 <div style={ui.bookList}>
                   {batch.map((book) => {
                     const selected = choices[book.id];
+                    const selectedCandidate = book.candidates.find(
+                      (candidate) => candidate.cover_url === selected
+                    );
 
                     return (
                       <article key={book.id} style={ui.bookRow}>
                         <div style={ui.original}>
-                          <div style={ui.placeholder}>
-                            <BookOpen size={23} />
-                          </div>
                           <strong>{book.title}</strong>
                           <span>{book.author || 'Author unknown'}</span>
+                          {book.isbn && (
+                            <small>ISBN: {book.isbn}</small>
+                          )}
                         </div>
 
-                        <div style={ui.candidates}>
+                        <div style={ui.candidateArea}>
+                          {book.confidence === 'isbn' && (
+                            <span style={ui.confidenceGood}>
+                              ISBN MATCH
+                            </span>
+                          )}
+                          {book.confidence === 'exact' && (
+                            <span style={ui.confidenceGood}>
+                              TITLE + AUTHOR MATCH
+                            </span>
+                          )}
+                          {book.confidence === 'review' && (
+                            <span style={ui.confidenceReview}>
+                              CHECK MATCH
+                            </span>
+                          )}
+
                           {book.candidates.length === 0 ? (
                             <div style={ui.noMatch}>
-                              <ImageOff size={19} />
+                              <ImageOff size={17} />
                               <span>
-                                {book.searchError
-                                  ? 'Search failed'
-                                  : 'No cover found'}
+                                {book.searchError || 'No cover found'}
                               </span>
                             </div>
                           ) : (
-                            book.candidates.map((candidate) => (
-                              <button
-                                type="button"
-                                key={candidate.id}
-                                onClick={() =>
-                                  chooseCover(book.id, candidate.cover_url)
-                                }
-                                style={{
-                                  ...ui.candidate,
-                                  borderColor:
-                                    selected === candidate.cover_url
-                                      ? '#c5a875'
-                                      : 'rgba(197,168,117,.15)',
-                                  background:
-                                    selected === candidate.cover_url
-                                      ? 'rgba(197,168,117,.1)'
-                                      : '#171512',
-                                }}
-                                title={`${candidate.title} by ${candidate.author}`}
-                              >
-                                <img
-                                  src={candidate.cover_url}
-                                  alt={`Suggested cover for ${candidate.title}`}
-                                />
-                                <span>
-                                  {selected === candidate.cover_url ? (
-                                    <Check size={14} />
-                                  ) : (
-                                    'Select'
-                                  )}
-                                </span>
-                              </button>
-                            ))
+                            <div style={ui.candidates}>
+                              {book.candidates.map((candidate) => (
+                                <button
+                                  type="button"
+                                  key={candidate.id}
+                                  onClick={() =>
+                                    chooseCover(book.id, candidate.cover_url)
+                                  }
+                                  style={{
+                                    ...ui.candidate,
+                                    borderColor:
+                                      selected === candidate.cover_url
+                                        ? '#c5a875'
+                                        : 'rgba(197,168,117,.16)',
+                                    background:
+                                      selected === candidate.cover_url
+                                        ? 'rgba(197,168,117,.12)'
+                                        : '#171512',
+                                  }}
+                                  title={`${candidate.title} by ${candidate.author}`}
+                                >
+                                  <img
+                                    src={candidate.cover_url}
+                                    alt={`Cover of ${candidate.title}`}
+                                  />
+                                  <span>
+                                    {selected === candidate.cover_url
+                                      ? <Check size={13} />
+                                      : 'Select'}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          {selectedCandidate && (
+                            <button
+                              style={ui.deselect}
+                              onClick={() => toggleSelection(book)}
+                            >
+                              Remove selection
+                            </button>
                           )}
                         </div>
                       </article>
@@ -415,25 +519,36 @@ function CoverRecovery({ onClose, onUpdated }) {
                 <div style={ui.actions}>
                   <button
                     style={ui.secondary}
-                    onClick={nextBatch}
+                    onClick={skipBatch}
                     disabled={saving}
                   >
-                    Skip this batch
+                    Skip batch
                     <ChevronRight size={14} />
                   </button>
 
-                  <button
-                    style={ui.primary}
-                    onClick={saveSelected}
-                    disabled={!selectedCount || saving}
-                  >
-                    {saving ? (
-                      <LoaderCircle size={15} />
-                    ) : (
-                      <Check size={15} />
-                    )}
-                    Save {selectedCount} selected covers
-                  </button>
+                  <div style={ui.actionGroup}>
+                    <button
+                      style={ui.secondary}
+                      onClick={approveHighConfidence}
+                      disabled={!highConfidenceCount || saving}
+                    >
+                      <Sparkles size={14} />
+                      Select strong matches
+                    </button>
+
+                    <button
+                      style={ui.primary}
+                      onClick={saveSelected}
+                      disabled={!selectedCount || saving}
+                    >
+                      {saving ? (
+                        <LoaderCircle size={15} />
+                      ) : (
+                        <Check size={15} />
+                      )}
+                      Save {selectedCount} covers
+                    </button>
+                  </div>
                 </div>
               </>
             )}
@@ -465,7 +580,7 @@ const ui = {
     backdropFilter: 'blur(5px)',
   },
   modal: {
-    width: 'min(100%, 900px)',
+    width: 'min(100%, 920px)',
     maxHeight: '92vh',
     overflowY: 'auto',
     padding: 25,
@@ -507,11 +622,6 @@ const ui = {
     gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
     gap: 8,
     marginBottom: 18,
-  },
-  stat: {
-    padding: 12,
-    background: 'rgba(197,168,117,.045)',
-    border: '1px solid rgba(197,168,117,.15)',
   },
   center: {
     display: 'flex',
@@ -577,6 +687,16 @@ const ui = {
     gap: 12,
     margin: '15px 0 10px',
   },
+  confidenceSummary: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 12,
+    fontSize: 9,
+  },
+  confidenceGood: { color: '#9ebc91', fontSize: 9 },
+  confidenceReview: { color: '#d3b276', fontSize: 9 },
+  confidenceNone: { color: '#9b8e7e', fontSize: 9 },
   bookList: {
     maxHeight: '48vh',
     overflowY: 'auto',
@@ -595,15 +715,11 @@ const ui = {
     gap: 5,
     minWidth: 0,
   },
-  placeholder: {
-    width: 48,
-    height: 65,
-    display: 'grid',
-    placeItems: 'center',
-    color: '#c5a875',
-    background: '#28221b',
-    border: '1px solid rgba(197,168,117,.2)',
-    marginBottom: 4,
+  candidateArea: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 7,
+    minWidth: 0,
   },
   candidates: {
     display: 'flex',
@@ -612,8 +728,8 @@ const ui = {
     alignItems: 'flex-start',
   },
   candidate: {
-    flex: '0 0 82px',
-    width: 82,
+    flex: '0 0 78px',
+    width: 78,
     padding: 5,
     border: '1px solid',
     color: '#c5b69d',
@@ -626,12 +742,26 @@ const ui = {
     color: '#8f806d',
     fontSize: 10,
   },
+  deselect: {
+    alignSelf: 'flex-start',
+    padding: 0,
+    border: 0,
+    background: 'transparent',
+    color: '#a99a85',
+    fontSize: 9,
+    cursor: 'pointer',
+  },
   actions: {
     display: 'flex',
     justifyContent: 'space-between',
     flexWrap: 'wrap',
     gap: 10,
     marginTop: 17,
+  },
+  actionGroup: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 9,
   },
 };
 
