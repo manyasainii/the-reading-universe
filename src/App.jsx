@@ -14,11 +14,13 @@ import {
   Feather,
   LogOut,
   FileSpreadsheet,
+  Images,
 } from 'lucide-react';
 
 import Auth from './Auth.jsx';
 import Library from './Library.jsx';
 import GoodreadsImport from './GoodreadsImport.jsx';
+import CoverRecovery from './CoverRecovery.jsx';
 import { supabase } from './lib/supabase';
 
 const navItems = [
@@ -36,6 +38,7 @@ function App() {
   const [authLoading, setAuthLoading] = useState(true);
 
   const [importOpen, setImportOpen] = useState(false);
+  const [coverRecoveryOpen, setCoverRecoveryOpen] = useState(false);
   const [existingBooks, setExistingBooks] = useState([]);
   const [loadingImportData, setLoadingImportData] = useState(false);
   const [libraryVersion, setLibraryVersion] = useState(0);
@@ -97,7 +100,7 @@ function App() {
     setImportOpen(true);
   }
 
-  async function handleImportComplete() {
+  function refreshLibrary() {
     setLibraryVersion((current) => current + 1);
   }
 
@@ -214,30 +217,55 @@ function App() {
 
           <div className="top-actions">
             {activeNav === 'Your library' && (
-              <button
-                className="icon-button"
-                onClick={openGoodreadsImport}
-                disabled={loadingImportData}
-                title="Import your Goodreads library"
-                aria-label="Import Goodreads library"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 7,
-                  width: 'auto',
-                  padding: '0 11px',
-                  border: '1px solid rgba(197,168,117,.3)',
-                  color: '#c5a875',
-                  background: 'rgba(197,168,117,.06)',
-                  fontSize: 10,
-                  whiteSpace: 'nowrap',
-                  opacity: loadingImportData ? .6 : 1,
-                }}
-              >
-                <FileSpreadsheet size={15} />
-                {loadingImportData ? 'Preparing...' : 'Import Goodreads'}
-              </button>
+              <>
+                <button
+                  className="icon-button"
+                  onClick={openGoodreadsImport}
+                  disabled={loadingImportData}
+                  title="Import your Goodreads library"
+                  aria-label="Import Goodreads library"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 7,
+                    width: 'auto',
+                    padding: '0 11px',
+                    border: '1px solid rgba(197,168,117,.3)',
+                    color: '#c5a875',
+                    background: 'rgba(197,168,117,.06)',
+                    fontSize: 10,
+                    whiteSpace: 'nowrap',
+                    opacity: loadingImportData ? .6 : 1,
+                  }}
+                >
+                  <FileSpreadsheet size={15} />
+                  {loadingImportData ? 'Preparing...' : 'Import Goodreads'}
+                </button>
+
+                <button
+                  className="icon-button"
+                  onClick={() => setCoverRecoveryOpen(true)}
+                  title="Review missing book covers"
+                  aria-label="Recover missing book covers"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 7,
+                    width: 'auto',
+                    padding: '0 11px',
+                    border: '1px solid rgba(197,168,117,.3)',
+                    color: '#c5a875',
+                    background: 'rgba(197,168,117,.06)',
+                    fontSize: 10,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <Images size={15} />
+                  Cover recovery
+                </button>
+              </>
             )}
 
             <div className="search-trigger">
@@ -321,7 +349,14 @@ function App() {
         <GoodreadsImport
           existingBooks={existingBooks}
           onClose={() => setImportOpen(false)}
-          onImported={handleImportComplete}
+          onImported={refreshLibrary}
+        />
+      )}
+
+      {coverRecoveryOpen && (
+        <CoverRecovery
+          onClose={() => setCoverRecoveryOpen(false)}
+          onUpdated={refreshLibrary}
         />
       )}
     </div>
