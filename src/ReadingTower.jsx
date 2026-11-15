@@ -13,18 +13,18 @@ const DEFAULT_GOAL = 100;
 const STORAGE_KEY = 'reading-universe-goal-2026';
 
 const spineColors = [
-  '#693d3b',
-  '#344b48',
-  '#8a6844',
-  '#343c55',
-  '#76513f',
-  '#59634d',
-  '#6b4b61',
-  '#9a784e',
-  '#394b5b',
-  '#784d3e',
-  '#555044',
-  '#7b624e',
+  '#344b78', // sapphire
+  '#493d78', // amethyst
+  '#285c63', // deep teal
+  '#59466f', // plum
+  '#405b83', // midnight blue
+  '#52617c', // slate
+  '#654b78', // violet
+  '#356b70', // turquoise
+  '#4b477f', // indigo
+  '#6b526f', // muted orchid
+  '#36536b', // ocean blue
+  '#655c88', // lavender
 ];
 
 function ReadingTower({ books = [] }) {
