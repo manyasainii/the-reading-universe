@@ -1901,3 +1901,518 @@
     border-bottom-color: rgba(184, 166, 238, 0.16);
   }
 }
+
+/* =========================================
+   READING TOWER: GALAXY LIGHTING + EDITOR
+========================================= */
+
+/* Tower atmosphere */
+
+.reading-tower {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(184, 166, 238, 0.28);
+  background:
+    radial-gradient(ellipse at 12% 100%, rgba(117, 89, 194, 0.28), transparent 48%),
+    radial-gradient(ellipse at 85% 8%, rgba(105, 170, 218, 0.18), transparent 42%),
+    radial-gradient(ellipse at 50% 50%, rgba(62, 49, 112, 0.2), transparent 70%),
+    linear-gradient(135deg, #1b1939, #101027 65%, #191632);
+  box-shadow:
+    0 15px 45px rgba(0, 0, 0, 0.3),
+    0 0 35px rgba(116, 94, 183, 0.08);
+}
+
+.reading-tower::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.45;
+  background-image:
+    radial-gradient(1px 1px at 12% 24%, #d8d0ff 98%, transparent),
+    radial-gradient(1px 1px at 28% 72%, #b8d8f0 98%, transparent),
+    radial-gradient(1px 1px at 47% 16%, #d8d0ff 98%, transparent),
+    radial-gradient(1px 1px at 68% 38%, #b8d8f0 98%, transparent),
+    radial-gradient(1px 1px at 83% 76%, #d8d0ff 98%, transparent),
+    radial-gradient(1px 1px at 93% 19%, #b8d8f0 98%, transparent);
+}
+
+.reading-tower::before {
+  background: linear-gradient(90deg, transparent, #b8d8f0, #b39ae9, transparent);
+  opacity: 0.85;
+}
+
+/* Heading controls */
+
+.tower-heading {
+  position: relative;
+  z-index: 1;
+}
+
+.tower-heading-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+  flex-shrink: 0;
+}
+
+.tower-edit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border: 1px solid rgba(184, 216, 240, 0.28);
+  border-radius: 3px;
+  background: rgba(155, 138, 216, 0.1);
+  color: #c9c1ef;
+  font: 10px 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.tower-edit-button:hover {
+  border-color: #b8d8f0;
+  background: rgba(155, 138, 216, 0.2);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(184, 216, 240, 0.1);
+}
+
+/* Tower display */
+
+.tower-main {
+  position: relative;
+  z-index: 1;
+}
+
+.tower-visual {
+  min-height: 330px;
+  border-bottom-color: #7770ad;
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(155, 138, 216, 0.25), transparent 65%),
+    radial-gradient(ellipse at 50% 0%, rgba(105, 170, 218, 0.08), transparent 65%);
+}
+
+.tower-stack {
+  max-height: 440px;
+  scrollbar-color: #7770ad transparent;
+}
+
+.tower-stack::-webkit-scrollbar-thumb {
+  background: #7770ad;
+}
+
+.tower-book {
+  flex-basis: 36px;
+  min-width: 145px;
+  max-width: 94%;
+  padding-left: 22px;
+  border-top-color: rgba(255, 255, 255, 0.3);
+  color: #f4f0ff;
+  box-shadow:
+    0 3px 5px rgba(0, 0, 0, 0.42),
+    inset 3px 0 5px rgba(255, 255, 255, 0.1),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.18);
+}
+
+.tower-book-title {
+  font-size: 11px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.tower-book-author {
+  color: rgba(242, 238, 255, 0.78);
+  font-size: 9px;
+}
+
+.tower-book-pages {
+  background: rgba(220, 225, 255, 0.4);
+}
+
+.tower-base {
+  background: linear-gradient(180deg, #b8d8f0, #6d65a4 60%, #30284d);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.45);
+}
+
+.tower-empty {
+  color: #b8b0d9;
+}
+
+.tower-empty-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 13px;
+  border: 1px solid rgba(184, 216, 240, 0.3);
+  background: rgba(155, 138, 216, 0.12);
+  color: #dcd5ff;
+  font: 10px 'DM Sans', sans-serif;
+  cursor: pointer;
+}
+
+.tower-empty-action:hover {
+  background: rgba(155, 138, 216, 0.22);
+}
+
+/* Progress area */
+
+.tower-count strong {
+  color: #f0edff;
+  text-shadow: 0 0 25px rgba(184, 216, 240, 0.15);
+}
+
+.tower-progress-fill {
+  background: linear-gradient(90deg, #7868bd, #a99be8, #b8d8f0);
+  box-shadow: 0 0 16px rgba(184, 216, 240, 0.32);
+}
+
+.tower-selection-note {
+  margin-top: 15px;
+  color: #aaa0d1;
+  font-size: 10px;
+}
+
+/* Tower editor modal */
+
+.tower-editor-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(5, 5, 19, 0.84);
+  backdrop-filter: blur(9px);
+}
+
+.tower-editor {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 620px);
+  max-height: 88vh;
+  overflow: hidden;
+  border: 1px solid rgba(184, 166, 238, 0.32);
+  border-radius: 5px;
+  background:
+    radial-gradient(ellipse at 90% 0%, rgba(105, 151, 190, 0.12), transparent 42%),
+    #17162f;
+  box-shadow: 0 25px 90px rgba(0, 0, 0, 0.6);
+  animation: library-appear .25s ease both;
+}
+
+.tower-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 25px 27px 20px;
+  border-bottom: 1px solid rgba(184, 166, 238, 0.17);
+}
+
+.tower-editor-header h2 {
+  margin: 9px 0 6px;
+  color: #f0edff;
+  font: 500 27px 'Playfair Display', serif;
+}
+
+.tower-editor-header h2 em {
+  color: #b8d8f0;
+  font-weight: 500;
+}
+
+.tower-editor-header p {
+  margin: 0;
+  color: #aaa4c8;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.tower-editor-close {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  padding: 5px;
+  border: 0;
+  background: transparent;
+  color: #aaa4c8;
+  cursor: pointer;
+}
+
+.tower-editor-close:hover {
+  color: #fff;
+}
+
+.tower-editor-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 27px;
+  background: rgba(155, 138, 216, 0.07);
+  color: #dcd5ff;
+  font-size: 11px;
+}
+
+.tower-editor-summary button {
+  border: 0;
+  background: transparent;
+  color: #b8d8f0;
+  font: 10px 'DM Sans', sans-serif;
+  cursor: pointer;
+}
+
+.tower-editor-summary button:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.tower-editor-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 17px 27px 12px;
+  padding: 0 12px;
+  min-height: 40px;
+  border: 1px solid rgba(184, 166, 238, 0.22);
+  background: #101027;
+  color: #aaa0d1;
+}
+
+.tower-editor-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #eeeaff;
+  font: 11px 'DM Sans', sans-serif;
+}
+
+.tower-editor-search input::placeholder {
+  color: #777392;
+}
+
+.tower-editor-search button {
+  display: grid;
+  place-items: center;
+  padding: 3px;
+  border: 0;
+  background: transparent;
+  color: #aaa4c8;
+  cursor: pointer;
+}
+
+.tower-editor-list {
+  flex: 1;
+  min-height: 100px;
+  overflow-y: auto;
+  padding: 0 27px 15px;
+  scrollbar-width: thin;
+  scrollbar-color: #7770ad transparent;
+}
+
+.tower-editor-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.tower-editor-list::-webkit-scrollbar-thumb {
+  background: #7770ad;
+}
+
+.tower-editor-book {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(184, 166, 238, 0.12);
+}
+
+.tower-editor-book-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tower-editor-book-copy strong {
+  overflow: hidden;
+  color: #eeeaff;
+  font: 500 13px 'Playfair Display', serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tower-editor-book-copy span {
+  overflow: hidden;
+  color: #aaa4c8;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tower-editor-book-copy small {
+  color: #8983a7;
+  font-size: 9px;
+}
+
+.tower-add-button,
+.tower-remove-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  min-width: 82px;
+  padding: 8px 10px;
+  border-radius: 3px;
+  font: 10px 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.tower-add-button {
+  border: 1px solid rgba(184, 216, 240, 0.35);
+  background: rgba(105, 151, 190, 0.1);
+  color: #b8d8f0;
+}
+
+.tower-add-button:hover {
+  background: rgba(105, 151, 190, 0.22);
+  border-color: #b8d8f0;
+}
+
+.tower-remove-button {
+  border: 1px solid rgba(220, 125, 145, 0.28);
+  background: rgba(220, 125, 145, 0.07);
+  color: #e7a9bb;
+}
+
+.tower-remove-button:hover {
+  background: rgba(220, 125, 145, 0.16);
+  border-color: #e7a9bb;
+}
+
+.tower-editor-empty {
+  padding: 35px 10px;
+  color: #aaa4c8;
+  font-size: 11px;
+  text-align: center;
+}
+
+.tower-editor-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 15px 27px;
+  border-top: 1px solid rgba(184, 166, 238, 0.17);
+  background: rgba(10, 10, 28, 0.45);
+}
+
+.tower-editor-footer span {
+  color: #8983a7;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.tower-editor-footer button {
+  flex-shrink: 0;
+  padding: 9px 18px;
+  border: 1px solid #b8d8f0;
+  border-radius: 3px;
+  background: linear-gradient(120deg, #c5b5f5, #a9cce8);
+  color: #17142d;
+  font: 700 10px 'DM Sans', sans-serif;
+  cursor: pointer;
+}
+
+.tower-editor-footer button:hover {
+  background: linear-gradient(120deg, #ded5ff, #c0e3f8);
+}
+
+/* Responsive */
+
+@media (max-width: 700px) {
+  .tower-heading-actions {
+    gap: 12px;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+  }
+
+  .tower-visual {
+    min-height: 260px;
+  }
+
+  .tower-stack {
+    max-height: 330px;
+  }
+
+  .tower-book {
+    flex-basis: 33px;
+  }
+
+  .tower-editor-backdrop {
+    padding: 10px;
+  }
+
+  .tower-editor {
+    max-height: 92vh;
+  }
+
+  .tower-editor-header {
+    padding: 20px 17px 16px;
+  }
+
+  .tower-editor-summary {
+    padding: 12px 17px;
+  }
+
+  .tower-editor-search {
+    margin: 14px 17px 10px;
+  }
+
+  .tower-editor-list {
+    padding: 0 17px 12px;
+  }
+
+  .tower-editor-footer {
+    padding: 13px 17px;
+  }
+}
+
+@media (max-width: 420px) {
+  .tower-heading-actions {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tower-editor-header h2 {
+    font-size: 23px;
+  }
+
+  .tower-editor-summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .tower-editor-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .tower-editor-footer button {
+    align-self: flex-end;
+  }
+
+  .tower-add-button,
+  .tower-remove-button {
+    min-width: 70px;
+    padding: 7px;
+  }
+}
