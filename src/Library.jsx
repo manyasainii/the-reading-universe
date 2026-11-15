@@ -91,48 +91,39 @@ function Library() {
     setSelectedBook(null);
 
     try {
-      const url = new URL('https://www.googleapis.com/books/v1/volumes');
+      const url = new URL('https://openlibrary.org/search.json');
 
-      url.searchParams.set('q', `intitle:${query}`);
-      url.searchParams.set('maxResults', '10');
-      url.searchParams.set('printType', 'books');
+      url.searchParams.set('title', query);
+      url.searchParams.set('limit', '10');
+      url.searchParams.set(
+        'fields',
+        'key,title,author_name,cover_i,first_publish_year,publisher'
+      );
 
       const response = await fetch(url);
-      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        const detail =
-          data.error?.message ||
-          response.statusText ||
-          'Unknown server error';
-
         throw new Error(
-          `Google Books returned HTTP ${response.status}: ${detail}`
+          `Open Library returned HTTP ${response.status}: ${
+            response.statusText || 'Search failed'
+          }`
         );
       }
 
-      const results = (data.items || []).map((item) => {
-        const info = item.volumeInfo || {};
-        const imageLinks = info.imageLinks || {};
+      const data = await response.json();
 
-        let cover =
-          imageLinks.thumbnail ||
-          imageLinks.smallThumbnail ||
-          '';
-
-        if (cover.startsWith('http://')) {
-          cover = cover.replace('http://', 'https://');
-        }
-
-        return {
-          id: item.id,
-          title: info.title || 'Untitled',
-          author: (info.authors || []).join(', '),
-          cover_url: cover,
-          publisher: info.publisher || '',
-          published_date: info.publishedDate || '',
-        };
-      });
+      const results = (data.docs || []).map((item) => ({
+        id: item.key,
+        title: item.title || 'Untitled',
+        author: (item.author_name || []).join(', '),
+        cover_url: item.cover_i
+          ? `https://covers.openlibrary.org/b/id/${item.cover_i}-M.jpg`
+          : '',
+        publisher: (item.publisher || []).slice(0, 1).join(''),
+        published_date: item.first_publish_year
+          ? String(item.first_publish_year)
+          : '',
+      }));
 
       setBookResults(results);
 
@@ -142,12 +133,14 @@ function Library() {
         );
       }
     } catch (searchError) {
-      console.error('Book catalogue search failed:', searchError);
+      console.error('Open Library search failed:', searchError);
 
       setBookSearchError(
         searchError.message?.includes('HTTP')
           ? searchError.message
-          : `Could not reach Google Books: ${searchError.message || 'Network error'}`
+          : `Could not reach Open Library: ${
+              searchError.message || 'Network error'
+            }`
       );
     } finally {
       setSearchingBooks(false);
