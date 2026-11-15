@@ -6,6 +6,7 @@ import {
   LoaderCircle, Check,
 } from 'lucide-react';
 import { supabase } from './lib/supabase';
+import ReadingTower from './ReadingTower';
 import './Library.css';
 
 const shelves = [
@@ -327,6 +328,8 @@ function Library() {
           Add a book
         </button>
       </section>
+
+      <ReadingTower books={books} />
 
       <section className="library-summary">
         <div>
